@@ -1,0 +1,101 @@
+#!/bin/bash
+
+# $1 = py/xml
+# $2 = for py: model / wizard / manifest
+# $2 = for xml: view / cron / param
+# $3 = model name it extends, eg : sale.order
+
+MODEL=$3
+MODEL_NAME=$(sed 's/\./_/' <<< $MODEL)
+FILE=""
+if [[ $1="xml" ]]
+then
+  if [[ "$2" == "view" ]]
+  then
+    FILENAME="$MODEL_NAME""_views.xml"
+    mkdir -p views
+    touch views/$FILENAME
+    FILE="views/$FILENAME"
+  elif [[ $2 == "cron" ]]
+  then
+    FILENAME="ir_cron.xml"
+    mkdir -p data
+    touch "data/$FILENAME"
+    FILE="data/$FILENAME"
+  elif [[ $2 == "param" ]]
+  then
+    FILENAME="ir_config_parameter.xml"
+    mkdir -p data
+    touch "data/$FILENAME"
+    FILE="data/$FILENAME"
+  fi
+fi
+
+write()
+{
+  cat <<-EOF >> $FILE
+$1
+EOF
+}
+
+render_view()
+{ 
+  write "    <record id=\"""$MODEL_NAME""_view_\" model=\"ir.ui.view\">"
+  write "        <field name=\"model\">""$MODEL""</field>"
+  write "        <field name=\"inherit_id\" ref=\"\"/>"
+  write "        <field name=\"arch\" type=\"xml\">"
+  write "            <xpath expr=\"//\" position=\"after\">"
+  write "            </xpath>"
+  write "        </field>"
+  write "    </record>"
+}
+
+render_cron()
+  write "    <record id=\"cron_\" model=\"ir.cron\">"
+  write "        <field name=\"name\"></field>"
+  write "        <field name=\"active\" eval=\"True\"/>"
+  write "        <field name=\"user_id\" ref=\"base.user_root\"/>"
+  write "        <field name=\"interval_number\">1</field>"
+  write "        <field name=\"interval_type\">days</field>"
+  write "        <field name=\"numbercall\">-1</field>"
+  write "        <field name=\"model_id\" ref=\"module.model_""$MODEL_NAME""\"/>"
+  write "        <field name=\"code\">model.cron_()</field>"
+  write "        <field name=\"state\">code</field>"
+  write "        <field name=\"type\">ir.actions.server</field>"
+  write "    </record>"
+}
+
+render_system_parameter()
+{
+  write "    <record id=\"my_sys_param\" model=\"ir.config_parameter\">"
+  write "        <field name=\"key\">my_sys_param</field>"
+  write "        <field name=\"value\">Omelette</field>"
+  write "    </record>"
+}
+
+create_xml()
+{
+  write "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+  write "<odoo>"
+  if [[ $2 == 'view' ]]
+  then
+    render_view
+  elif [[ $2 == 'cron' ]]
+  then
+    render_cron
+  elif [[ $2 == 'param' ]]
+  then
+    render_system_parameter
+  fi
+  write "</odoo>"
+}
+
+### Main script starts here 
+if [[ $1 == "xml" ]]
+then
+  create_xml $1 $2 $3
+elif [[ $1 == "py" ]]
+then
+  create_py $1 $2 $3
+fi
+echo "Done"
