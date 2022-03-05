@@ -7,8 +7,16 @@
 
 MODEL=$3
 MODEL_NAME=$(sed 's/\./_/' <<< $MODEL)
+
+CLASS=""
+subnames=$(echo $MODEL | tr "." "\n")
+for sub in $subnames
+do
+    CLASS="$CLASS""${sub^}"
+done
+
 FILE=""
-if [[ $1="xml" ]]
+if [[ $1 == "xml" ]]
 then
   if [[ "$2" == "view" ]]
   then
@@ -28,6 +36,26 @@ then
     mkdir -p data
     touch "data/$FILENAME"
     FILE="data/$FILENAME"
+  fi
+elif [[ $1 == "py" ]]
+then
+  if [[ $2 == "model" ]]
+  then
+    FILENAME="$MODEL_NAME"".py"
+    mkdir -p models
+    touch models/$FILENAME
+    FILE="models/$FILENAME"
+  elif [[ $2 == "manifest" ]]
+  then
+    FILENAME="__manifest__.py"
+    touch $FILENAME
+    FILE="$FILENAME"
+  elif [[ $2 == "wizard" ]]
+  then
+    FILENAME="$MODEL_NAME"".py"
+    mkdir -p wizards
+    touch wizards/$FILENAME
+    FILE="wizards/$FILENAME"
   fi
 fi
 
@@ -51,6 +79,7 @@ render_view()
 }
 
 render_cron()
+{
   write "    <record id=\"cron_\" model=\"ir.cron\">"
   write "        <field name=\"name\"></field>"
   write "        <field name=\"active\" eval=\"True\"/>"
@@ -90,12 +119,94 @@ create_xml()
   write "</odoo>"
 }
 
+render_model()
+{
+
+  write "from odoo import api, fields, models"
+  write ""
+  write ""
+  write "class $CLASS""(models.Model):"
+  write "    _inherit = '""$MODEL""'"
+  write ""
+  write "    x = fields.Char()"
+}
+
+render_wizard()
+{
+  write "from odoo import api, fields, models"
+  write ""
+  write ""
+  write "class $CLASS""(models.TransientModel):"
+  write "    _inherit = '""$MODEL""'"
+  write ""
+  write "    x = fields.Char()"
+}
+
+render_manifest()
+{
+  write "{"
+  write "    'name': \"your_module\","
+  write ""
+  write "    'summary': \"\"\""
+  write "        Short (1 phrase/line) summary of the module's purpose, used as"
+  write "        subtitle on modules listing or apps.openerp.com\"\"\","
+  write ""
+  write "    'description': \"\"\""
+  write "        Long description of module's purpose"
+  write "    \"\"\","
+  write ""
+  write "    'author': \"My Company\","
+  write "    'website': \"http://www.yourcompany.com\","
+  write "    'license': \"LGPL-3\","
+  write ""
+  write "    # Categories can be used to filter modules in modules listing"
+  write "    # Check https://github.com/odoo/odoo/blob/14.0/odoo/addons/base/data/ir_module_category_data.xml"
+  write "    # for the full list"
+  write "    'category': 'Uncategorized',"
+  write "    'version': '0.1',"
+  write ""
+  write "    # any module necessary for this one to work correctly"
+  write "    'depends': ['base'],"
+  write ""
+  write "    # always loaded"
+  write "    'data': ["
+  write "    ],"
+  write "    'assets': {"
+  write "        'web.assets_backend': ["
+  write "        ],"
+  write "        'web.assets_qweb': ["
+  write "        ],"
+  write "        'web.assets_frontend': ["
+  write "        ],"
+  write "    },"
+  write "}"
+
+}
+
+create_py()
+{
+
+  write "# -*- coding: utf-8 -*-"
+  write ""
+  if [[ $2 == 'model' ]]
+  then
+    render_model
+  elif [[ $2 == 'wizard' ]]
+  then
+    render_wizard
+  elif [[ $2 == 'manifest' ]]
+  then
+    render_manifest
+  fi
+}
 ### Main script starts here 
-if [[ $1 == "xml" ]]
+if [[ "$1" == "xml" ]]
 then
+
   create_xml $1 $2 $3
-elif [[ $1 == "py" ]]
+elif [[ "$1" == "py" ]]
 then
+
   create_py $1 $2 $3
 fi
 echo "Done"
