@@ -4,7 +4,9 @@ This repository is a little toolbox to create new files useful in Odoo developme
 ## Installation
 
 git clone git@github.com:pierrelocus/odoo-new
+
 sudo chmod +x odoo-new/odoo-new
+
 sudo cp odoo-new/odoo-new /usr/bin
 
 ## Usage
