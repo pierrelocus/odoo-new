@@ -13,6 +13,8 @@ sudo cp odoo-new/odoo-new /usr/bin
 
 odoo-new [xml|py] [view|cron|param|model|wizard] [model.name]
 
-e.g. odoo-new py model sale.order
+e.g.
 
-     odoo-new xml view sale.order
+    odoo-new py model sale.order
+
+    odoo-new xml view sale.order
