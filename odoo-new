@@ -6,7 +6,7 @@
 # $3 = model name it extends, eg : sale.order
 
 MODEL=$3
-MODEL_NAME=$(sed 's/\./_/' <<< $MODEL)
+MODEL_NAME=$(sed 's/\./_/g' <<< $MODEL)
 
 CLASS=""
 subnames=$(echo $MODEL | tr "." "\n")
