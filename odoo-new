@@ -186,7 +186,6 @@ render_manifest()
 
 create_py()
 {
-  echo "JE SUIS $2"
   write "# -*- coding: utf-8 -*-"
   write ""
   if [[ $2 == 'model' ]]
