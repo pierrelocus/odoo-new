@@ -122,6 +122,7 @@ create_xml()
 render_model()
 {
 
+
   write "from odoo import api, fields, models"
   write ""
   write ""
@@ -185,7 +186,7 @@ render_manifest()
 
 create_py()
 {
-
+  echo "JE SUIS $2"
   write "# -*- coding: utf-8 -*-"
   write ""
   if [[ $2 == 'model' ]]
@@ -197,8 +198,26 @@ create_py()
   elif [[ $2 == 'manifest' ]]
   then
     render_manifest
+  elif [[ $2 == 'SCAFFOLD' ]]
+  then
+    render_scaffold
   fi
 }
+
+scaffold()
+{
+  IFS=','
+  read -a namesList <<< "$3"
+  mkdir -p "$2"
+  for name in "${namesList[@]}"
+  do
+
+    # I cant re-use your function bcz of direct value assigning
+    # Adapt or i build a big function here ? so ugly :(
+    echo $name
+  done
+}
+
 ### Main script starts here 
 if [[ "$1" == "xml" ]]
 then
@@ -208,5 +227,11 @@ elif [[ "$1" == "py" ]]
 then
 
   create_py $1 $2 $3
+elif [[ "$1" == "scaffold" ]]
+then
+
+  scaffold $1 $2 $3
+  # Faster
+  # ./odoo-new scaffold <module_name> [model,model,model]
 fi
 echo "Done"
